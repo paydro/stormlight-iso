@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#
+# Install GNU cpio from source
+#
+
+source "${BASH_SOURCE%/*}/../variables"
+set -e
+
+BIN_DEST=${BASE_DIR}/vendor/cpio/bin/cpio
+VERSION="2.13"
+SRC_URL="https://ftp.gnu.org/gnu/cpio/cpio-${VERSION}.tar.gz"
+
+cd ${BASE_DIR}
+mkdir -p build
+curl ${SRC_URL} > build/cpio-${VERSION}.tar.gz
+
+cd build
+tar xvzf cpio-${VERSION}.tar.gz
+
+cd cpio-${VERSION}
+./configure
+make
+
+mkdir -p $(dirname ${BIN_DEST})
+cp ${BASE_DIR}/build/cpio-${VERSION}/src/cpio ${BIN_DEST}
+
+
+echo "cpio installed at ${BIN_DEST}"

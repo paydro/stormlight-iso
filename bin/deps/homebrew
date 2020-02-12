@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#
+# Install dependencies using homebrew.
+#
+# Modify the $DEPS and $CASK_DEPS variables to add more dependencies.
+
+source "${BASH_SOURCE%/*}/../variables"
+
+DEPS=( gzip xorriso )
+CASK_DEPS=( virtualbox virtualbox-extension-pack )
+
+brew install ${DEPS[@]}
+brew cask install ${CASK_DEPS[@]}
+
+echo "Homebrew dependencies installed."

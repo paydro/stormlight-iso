@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# Extract the base ubuntu iso and modify the contents with configuration files
+# from config/.
+#
+
+source "${BASH_SOURCE%/*}/variables"
+pushd ${BASE_DIR}
+
+if [[ ${OSTYPE} == "darwin"* ]]; then
+  CPIO="${BASE_DIR}/vendor/cpio/bin/cpio"
+elif [[ ${OSTYPE} == "linux-gnu" ]]; then
+  CPIO=$(which cpio)
+fi
+
+WORKSPACE="${BASE_DIR}/build/iso"
+mkdir ${WORKSPACE}
+
+echo "Extracting ${ISO} to ${WORKSPACE} ..."
+xorriso -osirrox on -indev ${ISO} -extract / ${WORKSPACE}
+
+chmod +w -R ${WORKSPACE}
+gunzip ${WORKSPACE}/initrd.gz
+
+pushd config
+
+echo "Adding preseed.cfg ..."
+echo preseed.cfg | ${CPIO} -H newc -o -A -F ${WORKSPACE}/initrd
+
+echo "Adding post-install.sh.cfg ..."
+echo post-install.sh | ${CPIO} -H newc -o -A -F ${WORKSPACE}/initrd
+
+echo "Adding authorized_keys ..."
+echo authorized_keys | ${CPIO} -H newc -o -A -F ${WORKSPACE}/initrd
+popd
+
+gzip ${WORKSPACE}/initrd
+
+echo "Enable installation auto-start from boot menus ..."
+
+# Set timeout for grub menus so we can joyfully skip hitting enter.
+cp config/grub.cfg ${WORKSPACE}/boot/grub/
+
+# This change isn't required for NUCs since they use EFI boots, but nice to
+# have a similar experience if used on a non EFI boot machine
+cp config/txt.cfg ${WORKSPACE}/txt.cfg
+
+chmod -w -R ${WORKSPACE}
+
+popd
+echo "Done."

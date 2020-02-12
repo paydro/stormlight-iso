@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# Create an iso from using the ${WORKSPACE} directory.
+#
+# This ISO can be used for UEFI and legacy BIOSes.
+
+set -e
+source "${BASH_SOURCE%/*}/variables"
+pushd ${BASE_DIR}
+
+# The MBR x86 machine code bytes from the original ISO are known to match
+# the isolinux.bin file inside that ISO. So copy them to a file in /tmp/.
+MBR_FILE="build/ubuntu_isohybrid_mbr.img"
+dd if="${ISO}" bs=1 count=446 of="${MBR_FILE}"
+
+xorriso -as mkisofs -r -V "Stormlight Ubuntu Install" \
+            -cache-inodes -J -l \
+            -isohybrid-mbr "${MBR_FILE}" \
+            -c boot.cat \
+            -b isolinux.bin \
+               -no-emul-boot -boot-load-size 4 -boot-info-table \
+            -eltorito-alt-boot \
+            -e boot/grub/efi.img \
+               -no-emul-boot -isohybrid-gpt-basdat \
+            -o "${ISO_OUT}" \
+            "${WORKSPACE}"
+
+popd
+echo "Created ${ISO_OUT}"

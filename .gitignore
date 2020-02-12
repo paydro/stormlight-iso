@@ -1,0 +1,6 @@
+stormlight.iso
+build/*
+config/authorized_keys
+vendor/cpio
+
+.make.*

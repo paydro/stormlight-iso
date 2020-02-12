@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# This is a `source`-able bash file that defines variables for common files and
+# common directories.
+
+# The base directory for this project.
+export BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+
+# The iso file downloaded by `make build/base.iso`
+export ISO=${ISO:-"${BASE_DIR}/build/base.iso"}
+
+# The location where the iso is extracted
+export WORKSPACE="${BASE_DIR}/build/iso"
+
+# The name of the final preseeded iso
+export ISO_OUT=${ISO_OUT:-"stormlight.iso"}
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi

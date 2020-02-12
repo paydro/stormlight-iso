@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# This is a wrapper around Makefile targets will produce a VM with an ubuntu OS
+# installed via the stormlight.iso.
+#
+# This script is destructive and will remove prior VMs before building a new
+# one.
+
+source "${BASH_SOURCE%/*}/variables"
+pushd ${BASE_DIR}
+set -e
+
+make vm-stop
+make vm-clean
+make vm-create
+
+if [[ ! -f config/authorized_keys ]]; then
+  echo "Please place your SSH pub key in config/authorized_keys!"
+  exit 1
+fi
+
+make stormlight.iso
+make vm-reset-iso
+
+start_time=$(date -u +%s)
+make vm-start
+
+while true; do
+  state=$(VBoxManage showvminfo --machinereadable stormlight-nuc | grep VMState= | tr "=" " " | awk '{print $2}' | sed -e 's/"//g')
+
+  if [[ "${state}" = "poweroff" ]]; then
+    break
+  fi
+  sleep 1
+done
+
+make vm-eject-iso
+
+end_time=$(date -u +%s)
+elapsed="$(($end_time-$start_time))"
+echo "VM build in ${elapsed} seconds."
+
+make vm-start
+
+# Wait until the machine is ready for SSH
+while true; do
+  nc -vz 127.0.0.1 2522
+  if [[ $? -eq 0 ]]; then
+    break
+  fi
+  sleep 1
+done
+
+echo "You can now SSH into the machine with:"
+echo "ssh -p 2522 hoid@127.0.0.1"
+

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# Build a virtualbox virtual machine that mimics an Intel NUC 8 i3
+#
+# Usage:
+#
+#   create-vm [NAME]
+#
+# By default, without a NAME parameter, the virtual machine is named using this
+# pattern:
+#
+#   stormlight-[YYYYMMDDHHMMSS]
+#
+# With the NAME argument, the date suffix is replaced with NAME. i.e.,:
+#
+#   $ create-vm hello
+#   # vm name: stormlight-hello
+#
+# This is not a perfect representation of the NUC, but it's close enough to test
+# the unattended installation of the stormlight iso.
+
+source "${BASH_SOURCE%/*}/variables"
+pushd ${BASE_DIR}
+
+VMS_DIR="build/vms"
+PREFIX="stormlight-"
+ID=$(date +"%Y%m%d%H%M%S")
+VM_NAME="${1:-${PREFIX}${ID}}"
+DISK_NAME="disk.vdi"
+DISK_SIZE="10240"
+VB="VBoxManage"
+
+mkdir -p ${VMS_DIR}/${VM_NAME}
+
+echo "Building virtualbox: ${VM_NAME}"
+
+set -e
+
+${VB} createvm --name "${VM_NAME}" \
+  --register \
+  --ostype "Ubuntu_64"
+
+${VB} modifyvm ${VM_NAME} \
+  --firmware efi \
+  --rtcuseutc on \
+  --ioapic on \
+  --memory 1024 \
+  --vram 128 \
+  --nic1 nat \
+  --natpf1 "SSH,tcp,127.0.0.1,2522,,22"
+
+${VB} createmedium disk --filename "${VMS_DIR}/${VM_NAME}/${DISK_NAME}" \
+  --size 10240 \
+  --format VDI \
+  --variant Standard
+
+${VB} storagectl ${VM_NAME} --name nvme --add pcie --controller NVMe
+${VB} storagectl ${VM_NAME} --name ide --add ide --controller PIIX4
+
+${VB} storageattach ${VM_NAME} \
+  --storagectl nvme \
+  --port 0 \
+  --device 0 \
+  --type hdd \
+  --medium "${VMS_DIR}/${VM_NAME}/${DISK_NAME}" \
+  --nonrotational on
+
+
