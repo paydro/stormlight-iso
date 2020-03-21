@@ -178,7 +178,7 @@ Pull requests are welcome!
 
 ## Author
 
-[Me!](https://tightlycoupled.io/about/)
+[paydro](https://tightlycoupled.io/about/)
 
 ## FAQ
 
