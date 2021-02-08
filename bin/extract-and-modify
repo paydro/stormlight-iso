@@ -19,7 +19,7 @@ mkdir ${WORKSPACE}
 echo "Extracting ${ISO} to ${WORKSPACE} ..."
 xorriso -osirrox on -indev ${ISO} -extract / ${WORKSPACE}
 
-chmod +w -R ${WORKSPACE}
+chmod -R +w ${WORKSPACE}
 gunzip ${WORKSPACE}/initrd.gz
 
 pushd config
@@ -45,7 +45,7 @@ cp config/grub.cfg ${WORKSPACE}/boot/grub/
 # have a similar experience if used on a non EFI boot machine
 cp config/txt.cfg ${WORKSPACE}/txt.cfg
 
-chmod -w -R ${WORKSPACE}
+chmod -R -w ${WORKSPACE}
 
 popd
 echo "Done."
