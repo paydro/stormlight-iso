@@ -10,6 +10,6 @@ DEPS=( gzip xorriso )
 CASK_DEPS=( virtualbox virtualbox-extension-pack )
 
 brew install ${DEPS[@]}
-brew cask install ${CASK_DEPS[@]}
+brew install ${CASK_DEPS[@]}
 
 echo "Homebrew dependencies installed."
